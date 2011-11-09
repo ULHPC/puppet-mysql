@@ -7,5 +7,12 @@ Puppet::Type.newtype(:mysql_database) do
 
 		# TODO: only [[:alnum:]_] allowed
 	end
+
+	newparam(:defaults) do
+		desc "A my.cnf file containing defaults to connect to the DB server"
+		defaultto "/etc/mysql/debian.cnf"
+
+		# TODO: only valid paths allowed
+	end
 end
 
