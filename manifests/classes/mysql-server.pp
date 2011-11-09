@@ -95,7 +95,7 @@ class mysql::server::common {
 
     exec { "Initialize MySQL server root password":
         unless  => "test -f /root/.my.cnf",
-        command => "mysqladmin -u ${root_user} password ${real_root_password}",
+        command => "mysqladmin -u ${root_user} -h localhost password ${real_root_password}",
         notify  => File['/root/.my.cnf'],
         require => [
                     Package['mysql-server'],
@@ -155,6 +155,12 @@ class mysql::server::common {
         require    => Package['mysql-server'],
         #subscribe  => File['mysql-server.conf'],
     }
+
+    # Collect all databases and users
+	Mysql_database<<||>>
+	#Mysql_user<<||>>
+	Mysql_grant<<||>>
+
 }
 
 
@@ -162,7 +168,17 @@ class mysql::server::common {
 # = Class: mysql::server::debian
 #
 # Specialization class for Debian systems
-class mysql::server::debian inherits mysql::server::common { }
+class mysql::server::debian inherits mysql::server::common {
+    Mysql_database { defaults => "/etc/mysql/debian.cnf" }
+    #Mysql_user     { defaults => "/etc/mysql/debian.cnf" }
+    Mysql_grant    { defaults => "/etc/mysql/debian.cnf" }
+
+    # Delete MySQL users root@${fqdn} and root@127.0.0.1, created by the
+    # debian package and left without password
+    mysql::user { [ "root@127.0.0.1", "root@${fqdn}" ]:
+        ensure => 'absent'        
+    }
+}
 
 # ------------------------------------------------------------------------------
 # = Class: mysql::server::redhat
