@@ -65,7 +65,7 @@ class mysql::client::common {
     require mysql::params
 
     package { 'mysql-client':
-        name    => "${mysql::client::params::packagename}",
+        name    => "${mysql::params::client_packagename}",
         ensure  => "${mysql::client::ensure}",
     }
     

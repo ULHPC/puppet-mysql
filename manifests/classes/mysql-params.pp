@@ -52,8 +52,6 @@ class mysql::params {
         default => "${mysql_root_password}",
     }
 
-
-
     # Data directory path, which is used to store all the databases
     $datadir = $mysql_datadir ? {
         ''      => '/var/lib/mysql',
@@ -143,7 +141,11 @@ class mysql::params {
         default => undef,
     }
 
-
+    # MySQL client command (for batch mode)
+    $mysql_client_cmd = $::operatingsystem ? {
+        /(?i-mx:ubuntu|debian)/ => "mysql --defaults-file=/etc/mysql/debian.cnf",
+        default => "mysql"
+    }
 
     # $configdir = $::operatingsystem ? {
     #     default => "/etc/mysql",
