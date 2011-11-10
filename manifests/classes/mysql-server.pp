@@ -73,6 +73,12 @@ class mysql::server::common {
         ensure  => "${mysql::server::ensure}",
     }
 
+    if ( defined(Class['apache']) and $apache::use_php == true) {
+        package { 'php5-mysql':
+            ensure  => "${mysql::server::ensure}",
+        }
+    }
+
     # MySQL user and group
     user { 'mysql':
         ensure  => "${mysql::server::ensure}",
@@ -157,9 +163,9 @@ class mysql::server::common {
     }
 
     # Collect all databases and users
-	Mysql_database<<||>>
-	#Mysql_user<<||>>
-	Mysql_grant<<||>>
+    Mysql_database<<||>>
+    #Mysql_user<<||>>
+    Mysql_grant<<||>>
 
 }
 
@@ -176,7 +182,7 @@ class mysql::server::debian inherits mysql::server::common {
     # Delete MySQL users root@${fqdn} and root@127.0.0.1, created by the
     # debian package and left without password
     mysql::user { [ "root@127.0.0.1", "root@${fqdn}" ]:
-        ensure => 'absent'        
+        ensure => 'absent'
     }
 }
 
