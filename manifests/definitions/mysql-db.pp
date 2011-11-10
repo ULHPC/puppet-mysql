@@ -36,7 +36,7 @@
 #
 # == Sample usage:
 #
-#      mysql::db' { 'mediawiki':
+#      mysql::db { 'mediawiki':
 #          ensure       => 'present',
 #          creates_user => true,
 #      }
