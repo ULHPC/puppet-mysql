@@ -11,6 +11,8 @@
 # == Parameters:
 #
 # $ensure:: *Default*: 'present'. Ensure the presence (or absence) of mysql::server
+# $root_password:: *Default*: ''. MySQL root password (left empty for having a random generated one that will be stored in the file /root/.my.cnf)
+# $datadir::  *Default*: '/var/lib/mysql'. MySQL Data directory 
 #
 # == Requires:
 #
