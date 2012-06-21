@@ -17,7 +17,16 @@
 #
 # [*creates_user*]
 #   Whether or not to create an associated user (that will have the full rights
-#   on the database). Note that this user will receive the name of teh database
+#   on the database). Note that this user will receive the name of the database,
+#   unless the $username directive is set.
+#
+# [*username*]
+#   Name of the user to be created, default to $name. (in practice, the real
+#   MySQL user created will be ${username}@${host})
+#
+# [*host*]
+#  The host from which this user is assumed to connect from.
+#  Default to localhost
 #
 # [*password*]
 #   password of the user to be created. If left to an empty string, a random
@@ -50,7 +59,9 @@
 #
 define mysql::db (
     $ensure       = 'present',
-    $creates_user = true,
+    $host       = 'localhost',
+    $creates_user = false,
+    $username     = '',
     $password     = '',
     $accessfile   = ''
 )
@@ -60,9 +71,12 @@ define mysql::db (
     # $name is provided by define invocation and is should be set to the name of
     # the database
     $dbname = $name
-    $dbuser = $name
+    $dbuser = $username ? {
+        '' => "${name}",
+        default => "${username}"
+    }
 
-    info ("Configuring the MySQL DB ${dbname} (with ensure = ${ensure}")
+    info ("Configuring the MySQL DB ${dbname} (with ensure = ${ensure})")
 
     if (! defined( Class['mysql::server'] ) ) {
         fail("The class 'mysql::server' is not instancied")
@@ -76,38 +90,54 @@ define mysql::db (
             fail("Cannot create the database '${dbname}' as mysql::server::ensure is NOT set to present (but ${mysql::server::ensure})")
         }
     }
+    # This is the user to eventually create
+    $dbusername = "${dbuser}@${host}"
 
-    # Creates the DB
-    mysql_database { "${dbname}":
-        ensure   => $ensure,
-        require  => Class['mysql::server'], #File["/root/.my.cnf"],
-        #        defaults => '/root/.my.cnf',
+    # Creates or drop the DB
+    case $ensure {
+        'present': {
+            $action = "create"
+            $db_command = "CREATE DATABASE IF NOT EXISTS ${dbname}"
+        }
+        'absent': {
+            $action = "drop"
+            $db_command = "DROP DATABASE IF EXISTS ${dbname}"
+        }
+        default: { err ( "Unknown ensure value: '${ensure}'" ) }
+    }
+
+    mysql::command { "${action} the MySQL database":
+        command => "${db_command}"
     }
 
     # Eventually creates the associated user and grants him full priviledges on
     # the created database
-    if ($creates_user and $ensure == 'present') {
-        # This is the user to create
-        $dbusername = "${dbuser}@localhost"
+    if ($creates_user) {
 
         if ! defined(Mysql::User ["${dbusername}"]) {
             mysql::user { "${dbusername}":
-                password => "${dbuser_passwd}",
-                require  => Mysql_database["${dbname}"],
+                ensure   => "${ensure}",
+                password => "${password}",
+                require  => Mysql::Command["${action} the MySQL database"]
+                #Mysql_database["${dbname}"],
                 #                defaults      => "/root/.my.cnf"
             }
         }
 
-        mysql_grant { "${dbusername}/${dbname}":
-            privileges => [
-                           "select_priv", "insert_priv", "update_priv", "delete_priv",
-                           "create_priv", "drop_priv", "index_priv", "alter_priv",
-                           "alter_routine_priv", "create_routine_priv", "execute_priv",
-                           "lock_tables_priv", "references_priv", "show_view_priv"
-                           ],
-            require    => Mysql::User["${dbusername}"],
+        mysql::command { "Grant ${dbusername} admin of the ${dbname} DB":
+            command => "GRANT ALL PRIVILEGES on ${dbname}.* TO $dbusername; FLUSH PRIVILEGES;",
+            require => Mysql::User["${dbusername}"],
         }
-
+        
+        # mysql_grant { "${dbusername}/${dbname}":
+        #     privileges => [
+        #                    "select_priv", "insert_priv", "update_priv", "delete_priv",
+        #                    "create_priv", "drop_priv", "index_priv", "alter_priv",
+        #                    "alter_routine_priv", "create_routine_priv", "execute_priv",
+        #                    "lock_tables_priv", "references_priv", "show_view_priv"
+        #                    ],
+        #     require    => Mysql::User["${dbusername}"],
+        # }
     }
 
 }

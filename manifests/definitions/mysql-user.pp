@@ -20,6 +20,10 @@
 #   Details of the user (included the password) will be stored in the file
 #   <accessfile> (see below)
 #
+# [*host*]
+#  The host from which this user is assumed to connect from.
+#  Default to localhost
+#
 # [*accessfile*]
 #   The file used to save the access configuration for the created user.
 #   Default to /root/.my_<dbname>.cnf such that later on, you can connect to the
@@ -31,7 +35,7 @@
 #
 # == Sample usage:
 #
-#      mysql::user { 'mediawiki':
+#      mysql::user { 'mediawiki@localhost':
 #          ensure       => 'present',
 #      }
 #
@@ -44,20 +48,31 @@
 #
 define mysql::user (
     $ensure        = 'present',
+    $host          = '',
     $password      = '',
     $accessfile    = ''
 )
 {
     include mysql::params
 
-    # $name is provided by define invocation and is should be set to the name of
-    # the database
+    # $name is provided by define invocation. It is probably of the form
+    # user@host.
     $full_username = $name
+
     $username   = inline_template("<%= name.split('@')[0] %>")
-    $host       = inline_template("<%= name.split('@')[1] %>")
+    $userhost   = inline_template("<%= name.split('@')[1] %>")
+    $real_host = $userhost ? {
+        ''      => $host ? {
+            ''      => 'localhost',
+            default => "${host}"
+        },
+        default => "${userhost}"
+    }
+
+    # Handle the password
     $userpasswd = $password ? {
         ''      => chomp(generate("/usr/bin/pwgen", '--secure', 20, 1)),
-        default => $password
+        default => "${password}"
     }
     $hashed_passwd = mysql_password("${userpasswd}")
 
@@ -81,50 +96,62 @@ define mysql::user (
         }
     }
 
-    # Creates the user
+    # Creates or drop the user
     case $ensure {
-        'present': {         
-            exec { "create MySQL user ${full_username}":
-                command => "${mysql::params::mysql_client_cmd} -NBe \"CREATE USER '${username}'@'${host}' IDENTIFIED BY PASSWORD '${hashed_passwd}'\"",
-                path    => '/sbin:/usr/bin:/usr/sbin:/bin',
-                user    => 'root',
-                unless  => "test -f ${stored_accessfile}",
-                require =>  [
-                             Class['mysql::client'],
-                             Class['mysql::server'],
-                             File["/root/.my.cnf"],
-                             ]
+        'present': {
+            $action = "create"
+            $db_command = "CREATE USER '${username}'@'${real_host}' IDENTIFIED BY PASSWORD '${hashed_passwd}'"
+            $cmd_onlyif = undef
+            $cmd_unless = "test -f ${stored_accessfile}"
+
+            if ! defined(File["${stored_accessfile}"]) {
+                file { "${stored_accessfile}":
+                    ensure  => 'file',
+                    owner   => 'root',
+                    group   => 'root',
+                    mode    => '0600',
+                    replace => false,
+                    content => template("mysql/user_my.cnf.erb"),
+                    require => Exec["${action} the MySQL user ${full_username}"]
+                }
             }
 
-            # Add the entry in /root/.my_${username}.cnf
-            file { "${stored_accessfile}":
-                ensure  => "${ensure}",
-                owner   => 'root',
-                group   => 'root',
-                mode    => '0600',
-                replace => false,
-                content => template("mysql/user_my.cnf.erb"),
-                require => Exec["create MySQL user ${full_username}"]
-            }
+
         }
-
         'absent': {
-            exec { "drop MySQL user ${full_username}":
-                command => "${mysql::params::mysql_client_cmd} -NBe \"GRANT USAGE ON *.* TO '${username}'@'${host}'; DROP USER '${username}'@'${host}'\"",
-                path    => '/sbin:/usr/bin:/usr/sbin:/bin',
-                user    => 'root',
-                require =>  File["/root/.my.cnf"],
+            $action = "drop"
+            $db_command = "GRANT USAGE ON *.* TO '${username}'@'${real_host}'; DROP USER '${username}'@'${real_host}'; FLUSH PRIVILEGES;"
+            $cmd_onlyif = "test -f ${stored_accessfile}"
+            $cmd_unless = undef
+            if ! defined(File["${stored_accessfile}"]) {
+                file { "${stored_accessfile}":
+                    ensure => 'absent',
+                    require => Exec["${action} the MySQL user ${full_username}"]
+                }
             }
 
-            exec { "delete MySQL access file for ${full_username}":
-                command => "rm -f ${stored_accessfile}",
-                path    => '/sbin:/usr/bin:/usr/sbin:/bin',
-                onlyif  => "test -f ${stored_accessfile}",
-                require => Exec["drop MySQL user ${full_username}"]
-            }
         }
         default: { err ( "Unknown ensure value: '${ensure}'" ) }
     }
+
+    mysql::command { "${action} the MySQL user ${full_username}":
+        command => "${db_command}",
+        onlyif  => $cmd_onlyif,
+        unless  => $cmd_unless,
+    }
+
+    # # Add (or remove) the access file i.e. /root/.my_${username}.cnf
+    # if ! defined(File["${stored_accessfile}"]) {
+    #     file { "${stored_accessfile}":
+    #         ensure  => "${ensure}",
+    #         owner   => 'root',
+    #         group   => 'root',
+    #         mode    => '0600',
+    #         replace => false,
+    #         content => template("mysql/user_my.cnf.erb"),
+    #         require => Exec["${action} the MySQL user ${full_username}"]
+    #     }
+    # }
 
 }
 
