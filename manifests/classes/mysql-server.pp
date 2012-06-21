@@ -38,12 +38,15 @@
 # [Remember: No empty lines between comments and class definition]
 #
 class mysql::server(
-    $ensure        = $mysql::params::ensure,
-    $root_password = $mysql::params::root_password,
-    $datadir       = $mysql::params::datadir
+    $ensure          = $mysql::params::ensure,
+    $root_password   = $mysql::params::root_password,
+    $root_accessfile = $mysql::params::root_accessfile,
+    $datadir         = $mysql::params::datadir
 )
 inherits mysql::client
 {
+    Class['mysql::server'] -> Class['mysql::client']
+
     info ("Configuring mysql::server (with ensure = ${ensure})")
 
     if ! ($ensure in [ 'present', 'absent' ]) {
@@ -102,9 +105,9 @@ class mysql::server::common {
     }
 
     exec { "Initialize MySQL server root password":
-        unless  => "test -f /root/.my.cnf",
+        unless  => "test -f ${mysql::server::root_accessfile}",
         command => "mysqladmin -u ${root_user} -h localhost password ${real_root_password}",
-        notify  => File['/root/.my.cnf'],
+        notify  => File["${mysql::server::root_accessfile}"],
         require => [
                     Package['mysql-server'],
                     Service['mysql-server']
@@ -113,7 +116,7 @@ class mysql::server::common {
         group   => 'root',
     }
 
-    file { "/root/.my.cnf":
+    file { "${mysql::server::root_accessfile}":
         ensure  => "${mysql::server::ensure}",
         owner   => 'root',
         group   => 'root',
@@ -165,9 +168,9 @@ class mysql::server::common {
     }
 
     # Collect all databases and users
-    Mysql_database<<||>>
+    #Mysql_database<<||>>
     #Mysql_user<<||>>
-    Mysql_grant<<||>>
+    #Mysql_grant<<||>>
 
 }
 

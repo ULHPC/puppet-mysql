@@ -141,12 +141,19 @@ class mysql::params {
         default => undef,
     }
 
+    $root_accessfile = $::operatingsystem ? {
+        default => '/root/.my.cnf'
+    }
+    
     # MySQL client command (for batch mode)
     $mysql_client_cmd = $::operatingsystem ? {
-        /(?i-mx:ubuntu|debian)/ => "mysql --defaults-file=/etc/mysql/debian.cnf",
+        #/(?i-mx:ubuntu|debian)/ => "mysql --defaults-file=/etc/mysql/debian.cnf",
         default => "mysql"
     }
 
+
+
+    
     # $configdir = $::operatingsystem ? {
     #     default => "/etc/mysql",
     # }
