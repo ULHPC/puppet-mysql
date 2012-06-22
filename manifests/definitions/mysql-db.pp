@@ -59,7 +59,7 @@
 #
 define mysql::db (
     $ensure       = 'present',
-    $host       = 'localhost',
+    $host         = 'localhost',
     $creates_user = false,
     $username     = '',
     $password     = '',
@@ -97,7 +97,7 @@ define mysql::db (
     case $ensure {
         'present': {
             $action = "create"
-            $db_command = "CREATE DATABASE IF NOT EXISTS ${dbname}"
+            $db_command = "CREATE DATABASE IF NOT EXISTS ${dbname}; FLUSH PRIVILEGES;"
         }
         'absent': {
             $action = "drop"
@@ -106,7 +106,7 @@ define mysql::db (
         default: { err ( "Unknown ensure value: '${ensure}'" ) }
     }
 
-    mysql::command { "${action} the MySQL database":
+    mysql::command { "${action} the MySQL database ${dbname}":
         command => "${db_command}"
     }
 
@@ -114,11 +114,12 @@ define mysql::db (
     # the created database
     if ($creates_user) {
 
+        notice("create MySQL user ${dbusername} with password ${password}")
         if ! defined(Mysql::User ["${dbusername}"]) {
             mysql::user { "${dbusername}":
                 ensure   => "${ensure}",
                 password => "${password}",
-                require  => Mysql::Command["${action} the MySQL database"]
+                require  => Mysql::Command["${action} the MySQL database ${dbname}"]
                 #Mysql_database["${dbname}"],
                 #                defaults      => "/root/.my.cnf"
             }

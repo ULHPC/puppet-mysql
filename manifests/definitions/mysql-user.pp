@@ -100,7 +100,9 @@ define mysql::user (
     case $ensure {
         'present': {
             $action = "create"
-            $db_command = "CREATE USER '${username}'@'${real_host}' IDENTIFIED BY PASSWORD '${hashed_passwd}'"
+            #$db_command = "CREATE USER '${username}'@'${real_host}' IDENTIFIED BY PASSWORD '${hashed_passwd}'"
+            # Alternative to CREATE USER via GRANT
+            $db_command = "GRANT ALL PRIVILEGES ON *.* TO '${username}'@'${real_host}' IDENTIFIED BY PASSWORD '${hashed_passwd}'"
             $cmd_onlyif = undef
             $cmd_unless = "test -f ${stored_accessfile}"
 
