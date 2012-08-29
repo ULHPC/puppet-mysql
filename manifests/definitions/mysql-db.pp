@@ -39,6 +39,12 @@
 #   Default to /root/.my_<dbname>.cnf such that later on, you can connect to the
 #   mysql client by issuing  'mysql --defaults-file=/root/.my_<dbname>.cnf'
 #
+# [*owner*]
+#   Owner of the access file
+#
+# [*group*]
+#   group owner of the access file
+#
 # == Requires:
 #
 # The class mysql::server should have been instanciated.
@@ -63,7 +69,9 @@ define mysql::db (
     $creates_user = false,
     $username     = '',
     $password     = '',
-    $accessfile   = ''
+    $accessfile   = '',
+    $owner        = 'root',
+    $group        = 'root'
 )
 {
     include mysql::params
@@ -117,9 +125,12 @@ define mysql::db (
         notice("create MySQL user ${dbusername} with password ${password}")
         if ! defined(Mysql::User ["${dbusername}"]) {
             mysql::user { "${dbusername}":
-                ensure   => "${ensure}",
-                password => "${password}",
-                require  => Mysql::Command["${action} the MySQL database ${dbname}"]
+                ensure     => "${ensure}",
+                password   => "${password}",
+                accessfile => "${accessfile}",
+                owner      => "${owner}",
+                group      => "${group}",
+                require    => Mysql::Command["${action} the MySQL database ${dbname}"]
                 #Mysql_database["${dbname}"],
                 #                defaults      => "/root/.my.cnf"
             }

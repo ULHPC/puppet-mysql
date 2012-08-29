@@ -29,6 +29,12 @@
 #   Default to /root/.my_<dbname>.cnf such that later on, you can connect to the
 #   mysql client by issuing  'mysql --defaults-file=/root/.my_<dbname>.cnf'
 #
+# [*owner*]
+#   Owner of the access file
+#
+# [*group*]
+#   group owner of the access file
+#
 # == Requires:
 #
 # The class mysql::server should have been instanciated.
@@ -50,7 +56,9 @@ define mysql::user (
     $ensure        = 'present',
     $host          = '',
     $password      = '',
-    $accessfile    = ''
+    $accessfile    = '',
+    $owner         = 'root',
+    $group         = 'root'
 )
 {
     include mysql::params
@@ -76,8 +84,9 @@ define mysql::user (
     }
     $hashed_passwd = mysql_password("${userpasswd}")
 
+    $default_stored_accessfile = "/root/.my_${username}.cnf"
     $stored_accessfile = $accessfile ? {
-        ''      => "/root/.my_${username}.cnf",
+        ''      => "${default_stored_accessfile}",
         default => "${accessfile}"
     }
 
@@ -107,14 +116,23 @@ define mysql::user (
             $cmd_unless = "test -f ${stored_accessfile}"
 
             if ! defined(File["${stored_accessfile}"]) {
+
                 file { "${stored_accessfile}":
                     ensure  => 'file',
-                    owner   => 'root',
-                    group   => 'root',
+                    owner   => "${owner}",
+                    group   => "${group}",
                     mode    => '0600',
                     replace => false,
                     content => template("mysql/user_my.cnf.erb"),
                     require => Exec["${action} the MySQL user ${full_username}"]
+                }
+
+                if ("${stored_accessfile}" != "${default_stored_accessfile}") {
+                    file { "${default_stored_accessfile}":
+                        ensure  => 'link',
+                        target  => "${stored_accessfile}",
+                        require => File["${stored_accessfile}"]                        
+                    }
                 }
             }
 
@@ -130,8 +148,14 @@ define mysql::user (
                     ensure => 'absent',
                     require => Exec["${action} the MySQL user ${full_username}"]
                 }
+                 if ("${stored_accessfile}" != "${default_stored_accessfile}") {
+                    file { "${default_stored_accessfile}":
+                        ensure => 'absent',
+                        require => Exec["${action} the MySQL user ${full_username}"]
+                    }
+                 }
             }
-
+            
         }
         default: { err ( "Unknown ensure value: '${ensure}'" ) }
     }
