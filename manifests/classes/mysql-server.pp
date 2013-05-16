@@ -13,6 +13,7 @@
 # $ensure:: *Default*: 'present'. Ensure the presence (or absence) of mysql::server
 # $root_password:: *Default*: ''. MySQL root password (left empty for having a random generated one that will be stored in the file /root/.my.cnf)
 # $datadir::  *Default*: '/var/lib/mysql'. MySQL Data directory
+# $bind_address::  *Default*: '127.0.0.1'. The network service will listen on the specified address
 #
 # == Requires:
 #
@@ -41,7 +42,8 @@ class mysql::server(
     $ensure          = $mysql::params::ensure,
     $root_password   = $mysql::params::root_password,
     $root_accessfile = $mysql::params::root_accessfile,
-    $datadir         = $mysql::params::datadir
+    $datadir         = $mysql::params::datadir,
+    $bind_address    = $mysql::params::bind_address
 )
 inherits mysql::client
 {
@@ -150,6 +152,13 @@ class mysql::server::common {
                 replace => false,
             }
         }
+
+        augeas { "/files${mysql::params::configfile}":
+            changes => "set /files${mysql::params::configfile}/*/bind-address '${mysql::server::bind_address}'",
+            onlyif  => "get /files${mysql::params::configfile}/*/bind-address != '${mysql::server::bind_address}'",
+            notify  => Service['mysql-server']
+        }
+
     }
     else
     {

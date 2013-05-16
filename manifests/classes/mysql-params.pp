@@ -58,6 +58,12 @@ class mysql::params {
         default => $mysql_datadir,
     }
 
+    # Data directory path, which is used to store all the databases
+    $bind_address = $mysql_bind_address ? {
+        ''      => '127.0.0.1',
+        default => $mysql_bind_address,
+    }
+
     #### MODULE INTERNAL VARIABLES  #########
     # (Modify to adapt to unsupported OSes)
     #######################################
@@ -144,7 +150,7 @@ class mysql::params {
     $root_accessfile = $::operatingsystem ? {
         default => '/root/.my.cnf'
     }
-    
+
     # MySQL client command (for batch mode)
     $mysql_client_cmd = $::operatingsystem ? {
         #/(?i-mx:ubuntu|debian)/ => "mysql --defaults-file=/etc/mysql/debian.cnf",
@@ -153,7 +159,7 @@ class mysql::params {
 
 
 
-    
+
     # $configdir = $::operatingsystem ? {
     #     default => "/etc/mysql",
     # }
