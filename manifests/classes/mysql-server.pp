@@ -153,10 +153,12 @@ class mysql::server::common {
             }
         }
 
-        augeas { "/files${mysql::params::configfile}":
-            changes => "set /files${mysql::params::configfile}/*/bind-address '${mysql::server::bind_address}'",
-            onlyif  => "get /files${mysql::params::configfile}/*/bind-address != '${mysql::server::bind_address}'",
-            notify  => Service['mysql-server']
+        if ("${mysql::server::bind_address}" != "127.0.0.1") {
+            augeas { "/files${mysql::params::configfile}":
+                changes => "set /files${mysql::params::configfile}/*/bind-address '${mysql::server::bind_address}'",
+                onlyif  => "get /files${mysql::params::configfile}/*/bind-address != '${mysql::server::bind_address}'",
+                notify  => Service['mysql-server']
+            }
         }
 
     }
