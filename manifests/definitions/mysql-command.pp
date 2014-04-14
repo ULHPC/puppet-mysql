@@ -42,7 +42,9 @@ define mysql::command (
     $ensure  = 'present',
     $command = '',
     $onlyif  = undef,
-    $unless  = undef
+    $unless  = undef,
+    $mysql_unless = '',
+    $mysql_onlyif = ''
 )
 {
     include mysql::params
@@ -66,6 +68,16 @@ define mysql::command (
         fail("The class 'mysql::server' is not instancied")
     }
 
+    if ($unless) {
+        $real_unless = "${unless}"
+    }
+    else {
+        $real_unless = $mysql_unless ? {
+            ''      => undef,
+            default => "${mysql_cmd} -NBe \"${mysql_unless}\""
+        } 
+    }
+  
     if ($ensure == 'present') {
         # Now execute the command:
         exec { "${name}":
@@ -73,7 +85,7 @@ define mysql::command (
             path    => '/sbin:/usr/bin:/usr/sbin:/bin',
             user    => 'root',
             onlyif  => $onlyif,
-            unless  => $unless,
+            unless  => $real_unless,
             require =>  [
                          Class['mysql::client'],
                          Class['mysql::server'],
