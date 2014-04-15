@@ -77,6 +77,15 @@ define mysql::command (
             default => "${mysql_cmd} -NBe \"${mysql_unless}\""
         } 
     }
+    if ($onlyif) {
+        $real_onlyif = "${onlyif}"
+    }
+    else {
+        $real_onlyif = $mysql_onlyif ? {
+            ''      => undef,
+            default => "${mysql_cmd} -NBe \"${mysql_onlyif}\""
+        } 
+    }
   
     if ($ensure == 'present') {
         # Now execute the command:
@@ -84,7 +93,7 @@ define mysql::command (
             command => "${mysql_cmd} -NBe \"${cmd}\"",
             path    => '/sbin:/usr/bin:/usr/sbin:/bin',
             user    => 'root',
-            onlyif  => $onlyif,
+            onlyif  => $real_onlyif,
             unless  => $real_unless,
             require =>  [
                          Class['mysql::client'],
