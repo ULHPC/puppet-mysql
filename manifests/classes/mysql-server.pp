@@ -43,7 +43,8 @@ class mysql::server(
     $root_password   = $mysql::params::root_password,
     $root_accessfile = $mysql::params::root_accessfile,
     $datadir         = $mysql::params::datadir,
-    $bind_address    = $mysql::params::bind_address
+    $bind_address    = $mysql::params::bind_address,
+    $character_set   = $mysql::params::character_set
 )
 inherits mysql::client
 {
@@ -153,7 +154,7 @@ class mysql::server::common {
             }
         }
 
-        if ("${mysql::server::bind_address}" != "127.0.0.1") {
+        if ("${mysql::server::bind_address}" != '127.0.0.1') {
             augeas { "/files${mysql::params::configfile}":
                 changes => "set /files${mysql::params::configfile}/*/bind-address '${mysql::server::bind_address}'",
                 onlyif  => "get /files${mysql::params::configfile}/*/bind-address != '${mysql::server::bind_address}'",
@@ -161,6 +162,14 @@ class mysql::server::common {
             }
         }
 
+        if ("${mysql::server::character_set}" != '') {
+            file { "${mysql::params::configdir}/characterset.conf":
+                ensure  => "${mysql::server::ensure}",
+                content => "[mysqld]\n character-set-server=${mysql::server::character_set}",
+                require => Package['mysql-server'],
+                notify  => Service['mysql-server']
+            }
+        }
     }
     else
     {

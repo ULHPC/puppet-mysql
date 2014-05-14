@@ -63,6 +63,10 @@ class mysql::params {
         ''      => '127.0.0.1',
         default => $mysql_bind_address,
     }
+    $character_set = $mysql_character_set ? {
+        ''      => '',
+        default => $mysql_character_set,
+    }
 
     #### MODULE INTERNAL VARIABLES  #########
     # (Modify to adapt to unsupported OSes)
@@ -160,9 +164,9 @@ class mysql::params {
 
 
 
-    # $configdir = $::operatingsystem ? {
-    #     default => "/etc/mysql",
-    # }
+    $configdir = $::operatingsystem ? {
+        default => "/etc/mysql/conf.d",
+    }
     # $configdir_mode = $::operatingsystem ? {
     #     default => '0755',
     # }
