@@ -15,7 +15,7 @@
 
 include 'mysql::params'
 
-$names = ["ensure", "protocol", "port", "packagename"]
+$names = ['ensure', 'protocol', 'port', 'packagename']
 
 notice("mysql::params::ensure = ${mysql::params::ensure}")
 notice("mysql::params::protocol = ${mysql::params::protocol}")
