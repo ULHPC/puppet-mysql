@@ -1,0 +1,30 @@
+{
+  "name": "ULHPC/mysql",
+  "version": "0.0.1",
+  "author": "S. Varrette, H. Cartiaux, V. Plugaru, S. Diehl aka. UL HPC Management Team",
+  "mail": "hpc-sysadmins@uni.lu",
+  "summary": "Configure and manage MySQL",
+  "description": "Configure and manage MySQL",
+  "license": "GPL-3.0",
+  "source": "https://github.com/ULHPC/puppet-mysql",
+  "docs_project": "ulhpc-puppet-mysql",
+  "project_page": "https://github.com/ULHPC/puppet-mysql",
+  "issues_url": "https://github.com/ULHPC/puppet-mysql/issues",
+  "forge_url": "https://forge.puppetlabs.com/ULHPC/mysql",
+  "dependencies": [
+    {
+      "name": "puppetlabs-stdlib",
+      "version_requirement": ">=4.2.2 <5.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    }
+  ],
+  "tags": ["mysql", "sql", "database"]
+}
