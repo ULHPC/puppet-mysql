@@ -26,5 +26,26 @@
       ]
     }
   ],
-  "tags": ["mysql", "sql", "database"]
+  "tags": [
+    "mysql",
+    "sql",
+    "database"
+  ],
+  "classes": [
+    "mysql",
+    "mysql::client",
+    "mysql::client::common",
+    "mysql::client::debian",
+    "mysql::client::redhat",
+    "mysql::params",
+    "mysql::server",
+    "mysql::server::common",
+    "mysql::server::debian",
+    "mysql::server::redhat"
+  ],
+  "definitions": [
+    "mysql::command",
+    "mysql::db",
+    "mysql::user"
+  ]
 }
