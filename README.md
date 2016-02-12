@@ -54,83 +54,154 @@ See [`metadata.json`](metadata.json). In particular, this module depends on
 ### Class `mysql`
 
 This is the main class defined in this module.
-It accepts the following parameters: 
-
-* `$ensure`: default to 'present', can be 'absent'
 
 Use it as follows:
 
-     include ' mysql'
+     include 'mysql'
 
 See also [`tests/init.pp`](tests/init.pp)
 
 ### Class `mysql::client`
 
+This class installs the MySQL client.
+
+It accepts the following parameters:
+
+* `$ensure`: Default to 'present', can be 'absent'.
+
+This class will automatically include the appropriate specialisation class `mysql::client::debian` or `mysql::client::redhat` based on the OS.
+
+Sample usage:
+
+     import mysql::client
+
+You can then specialize the various aspects of the configuration,
+for instance:
+
+         class { 'mysql::client':
+             ensure => 'present'
+         }
+
+
 See [`tests/client.pp`](tests/client.pp)
-### Class `mysql::client::debian`
 
-See [`tests/client/debian.pp`](tests/client/debian.pp)
-### Class `mysql::client::redhat`
-
-See [`tests/client/redhat.pp`](tests/client/redhat.pp)
 ### Class `mysql::server`
 
+This class installs and configures a MySQL server.
+
+This class accepts the following parameters:
+
+* `$ensure`: *Default*: 'present'. Ensure the presence (or absence) of `mysql::server`.
+
+* `$root_password`: *Default*: ''. MySQL root password (left empty for having a random generated one that will be stored in the file `/root/.my.cnf`).
+
+* `$root_accessfile`: *Default*: '/root/.my.cnf'. Configuration file path for 'root' user (containing access details).
+
+* `$datadir`: *Default*: '/var/lib/mysql'. MySQL data directory.
+
+* `$bind_address`: *Default*: '127.0.0.1'. The network service will listen on the specified address.
+
+* `$character_set`: *Default*: ''. Sets MySQL's character set.
+
+This class will automatically include the appropriate specialisation class `mysql::server::debian` or `mysql::server::redhat` based on the OS.
+
+Sample usage:
+
+     import mysql::server
+     
+You can then specialize the various aspects of the configuration,
+for instance:
+
+         class { 'mysql::server':
+             ensure => 'present'
+         }
+
 See [`tests/server.pp`](tests/server.pp)
-### Class `mysql::server::debian`
-
-See [`tests/server/debian.pp`](tests/server/debian.pp)
-### Class `mysql::server::redhat`
-
-See [`tests/server/redhat.pp`](tests/server/redhat.pp)
 
 ### Definition `mysql::command`
 
-The definition `mysql::command` provides ...
+The definition `mysql::command` executes a MySQL command (as root user).
+
 This definition accepts the following parameters:
 
-* `$ensure`: default to 'present', can be 'absent'
-* `$content`: specify the contents of the directive as a string
-* `$source`: copy a file as the content of the directive.
+
+* `$ensure`: Default to 'present', can be 'absent'.
+
+* `$command`: If set, detail the MySQL command to execute.
+
+* `$onlyif`: If this parameter is set, then the MySQL command will only run if the command specified in the onlyif directive returns 0.
+
+* `$unless`: If this parameter is set, then the MySQL command will run unless the command specified in the unless directive returns 0.
+
+* `$mysql_unless`: Specify SQL clause as 'unless' parameter.
+
+* `$mysql_onlyif`: Specify SQL clause as 'onlyif' parameter.
+
 
 Example:
 
-        mysql::command { 'toto':
-		      ensure => 'present',
-        }
+      mysql::command { "create MySQL database ${dbname}":
+          command => "CREATE DATABASE IF NOT EXISTS ${dbname}"
+      }
 
 See also [`tests/command.pp`](tests/command.pp)
 
 ### Definition `mysql::db`
 
-The definition `mysql::db` provides ...
+The definition `mysql::db` sets up a MySQL database (and eventually the dedidated user associated to it).
+
 This definition accepts the following parameters:
 
-* `$ensure`: default to 'present', can be 'absent'
-* `$content`: specify the contents of the directive as a string
-* `$source`: copy a file as the content of the directive.
+* `$ensure`: Default to 'present', can be 'absent'  (BEWARE: it will remove the associated database and ALL its content).
+
+* `$creates_user`: Whether or not to create an associated user (that will have the full rights on the database). Note that this user will receive the name of the database, unless the `$username` directive is set. 
+
+* `$username`: Name of the user to be created, default to `$name` (in practice, the real MySQL user created will be ${username}@${host}).
+
+* `$host`: The host from which this user is assumed to connect from. Default to localhost.
+
+* `$password`: Password of the user to be created. If left to an empty string, a random password will be generated (and stored in accessfile). Details of the user (included the password) will be stored in the file `/root/.my.cnf`.
+
+* `$ro_password`: Password for read-only user.
+
+* `$accessfile`: The file used to save the access configuration for the created user. Default to /root/.my_\<dbname\>.cnf such that later on, you can connect to the  mysql client by issuing `mysql --defaults-file=/root/.my_<dbname>.cnf`.
+
+* `$owner`: Owner of the accessfile.
+
+* `$group`: Group owner of the accessfile.
 
 Example:
 
-        mysql::db { 'toto':
-		      ensure => 'present',
-        }
+      mysql::db { 'mediawiki':
+          ensure       => 'present',
+          creates_user => true,
+       }
 
 See also [`tests/db.pp`](tests/db.pp)
 
 ### Definition `mysql::user`
 
-The definition `mysql::user` provides ...
+The definition `mysql::user` sets up a MySQL user (and stores the associated password in a file).
+
 This definition accepts the following parameters:
 
-* `$ensure`: default to 'present', can be 'absent'
-* `$content`: specify the contents of the directive as a string
-* `$source`: copy a file as the content of the directive.
+* `$ensure`: Default to 'present', can be 'absent'.
+
+* `$host`: The host from which this user is assumed to connect from. Default to localhost.
+
+* `$password`: Password of the user to be created. If left to an empty string, a random password will be generated (and stored in accessfile). Details of the user (included the password) will be stored in the file \<accessfile\> (see below).
+
+* `$accessfile`: The file used to save the access configuration for the created user. Default to /root/.my_\<dbname\>.cnf such that later on, you can connect to the mysql client by issuing `mysql --defaults-file=/root/.my_<dbname>.cnf`.
+
+* `$owner`: Owner of the access file.
+
+* `$group`: Group owner of the access file.
 
 Example:
 
-        mysql::user { 'toto':
-		      ensure => 'present',
-        }
+	mysql::user { 'mediawiki@localhost':
+        ensure => 'present',
+    }
 
 See also [`tests/user.pp`](tests/user.pp)
 
