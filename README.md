@@ -21,8 +21,21 @@ Configure and manage MySQL.
 This module implements the following elements: 
 
 * __Puppet classes__:
+    - `mysql` 
+    - `mysql::client` 
+    - `mysql::client::common` 
+    - `mysql::client::debian` 
+    - `mysql::client::redhat` 
+    - `mysql::params` 
+    - `mysql::server` 
+    - `mysql::server::common` 
+    - `mysql::server::debian` 
+    - `mysql::server::redhat` 
 
 * __Puppet definitions__: 
+    - `mysql::command` 
+    - `mysql::db` 
+    - `mysql::user` 
 
 All these components are configured through a set of variables you will find in
 [`manifests/params.pp`](manifests/params.pp). 
@@ -51,6 +64,75 @@ Use it as follows:
 
 See also [`tests/init.pp`](tests/init.pp)
 
+### Class `mysql::client`
+
+See [`tests/client.pp`](tests/client.pp)
+### Class `mysql::client::debian`
+
+See [`tests/client/debian.pp`](tests/client/debian.pp)
+### Class `mysql::client::redhat`
+
+See [`tests/client/redhat.pp`](tests/client/redhat.pp)
+### Class `mysql::server`
+
+See [`tests/server.pp`](tests/server.pp)
+### Class `mysql::server::debian`
+
+See [`tests/server/debian.pp`](tests/server/debian.pp)
+### Class `mysql::server::redhat`
+
+See [`tests/server/redhat.pp`](tests/server/redhat.pp)
+
+### Definition `mysql::command`
+
+The definition `mysql::command` provides ...
+This definition accepts the following parameters:
+
+* `$ensure`: default to 'present', can be 'absent'
+* `$content`: specify the contents of the directive as a string
+* `$source`: copy a file as the content of the directive.
+
+Example:
+
+        mysql::command { 'toto':
+		      ensure => 'present',
+        }
+
+See also [`tests/command.pp`](tests/command.pp)
+
+### Definition `mysql::db`
+
+The definition `mysql::db` provides ...
+This definition accepts the following parameters:
+
+* `$ensure`: default to 'present', can be 'absent'
+* `$content`: specify the contents of the directive as a string
+* `$source`: copy a file as the content of the directive.
+
+Example:
+
+        mysql::db { 'toto':
+		      ensure => 'present',
+        }
+
+See also [`tests/db.pp`](tests/db.pp)
+
+### Definition `mysql::user`
+
+The definition `mysql::user` provides ...
+This definition accepts the following parameters:
+
+* `$ensure`: default to 'present', can be 'absent'
+* `$content`: specify the contents of the directive as a string
+* `$source`: copy a file as the content of the directive.
+
+Example:
+
+        mysql::user { 'toto':
+		      ensure => 'present',
+        }
+
+See also [`tests/user.pp`](tests/user.pp)
 
 
 ## Librarian-Puppet / R10K Setup
