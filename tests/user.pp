@@ -5,6 +5,8 @@
 #
 # ------------------------------------------------------------------------------
 
+include mysql
+
 mysql::user { 'testuser@localhost':
     ensure => 'present',
 }

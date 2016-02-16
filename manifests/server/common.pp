@@ -48,8 +48,9 @@ class mysql::server::common {
     }
 
     exec { 'Initialize MySQL server root password':
-        unless  => "test -f ${mysql::server::root_accessfile}",
+        unless  => "/usr/bin/test -f ${mysql::server::root_accessfile}",
         command => "mysqladmin -u ${root_user} -h localhost password ${real_root_password}",
+        path    => "/usr/local/bin:/usr/local/sbin:/bin:/usr/bin:/usr/sbin:/sbin",
         notify  => File[$mysql::server::root_accessfile],
         require => [
                     Package['mysql-server'],
