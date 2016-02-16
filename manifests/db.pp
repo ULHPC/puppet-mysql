@@ -85,7 +85,7 @@ define mysql::db (
         default => $username
     }
     $ro_dbuser = "${dbuser}_ro"
-    
+
     info ("Configuring the MySQL DB ${dbname} (with ensure = ${ensure})")
 
     if (! defined( Class['mysql::server'] ) ) {
@@ -125,7 +125,7 @@ define mysql::db (
     if ($creates_user) {
 
         notice("create MySQL user ${dbusername} with password ${password}")
-        if ! defined(Mysql::User [$dbusername]) {
+        if ! defined(Mysql::User[$dbusername]) {
             mysql::user { $dbusername:
                 ensure     => $ensure,
                 password   => $password,
@@ -144,7 +144,7 @@ define mysql::db (
         }
 
         if ($ro_password != '') {
-            
+
             case $ensure {
                 present: {
                     $rouser_db_cmd = "GRANT SELECT ON ${dbname}.* to '${dbname}_ro'@'localhost'  identified by '${ro_password}'; FLUSH PRIVILEGES;"
@@ -154,15 +154,15 @@ define mysql::db (
                 }
                 default: { }
             }
-            
+
             mysql::command { "${action} RO user for ${dbname} DB":
                 command => $rouser_db_cmd,
                 require => Mysql::Command["${action} the MySQL database ${dbname}"]
             }
-            
+
         }
-        
-        
+
+
         # mysql_grant { "${dbusername}/${dbname}":
         #     privileges => [
         #                    "select_priv", "insert_priv", "update_priv", "delete_priv",
@@ -175,9 +175,3 @@ define mysql::db (
     }
 
 }
-
-
-
-
-
-
