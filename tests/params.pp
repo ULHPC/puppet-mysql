@@ -15,7 +15,7 @@
 
 include 'mysql::params'
 
-$names = ["ensure", "protocol", "port", "root_password", "datadir", "bind_address", "character_set", "client_packagename", "server_packagename", "servicename", "processname", "hasstatus", "hasrestart", "configfile", "configfile_mode", "configfile_owner", "configfile_group", "configfile_seltype", "logdir", "logdir_mode", "logdir_owner", "logdir_group", "logdir_seltype", "datadir_mode", "datadir_owner", "datadir_group", "datadir_seltype", "root_accessfile", "mysql_client_cmd", "configdir"]
+$names = ['ensure', 'protocol', 'port', 'root_password', 'datadir', 'bind_address', 'character_set', 'client_packagename', 'server_packagename', 'servicename', 'processname', 'hasstatus', 'hasrestart', 'configfile', 'configfile_mode', 'configfile_owner', 'configfile_group', 'configfile_seltype', 'logdir', 'logdir_mode', 'logdir_owner', 'logdir_group', 'logdir_seltype', 'datadir_mode', 'datadir_owner', 'datadir_group', 'datadir_seltype', 'root_accessfile', 'mysql_client_cmd', 'configdir']
 
 notice("mysql::params::ensure = ${mysql::params::ensure}")
 notice("mysql::params::protocol = ${mysql::params::protocol}")

@@ -7,6 +7,6 @@
 
 include mysql
 
-mysql::command { "create MySQL database test":
-    command => "CREATE DATABASE IF NOT EXISTS test"
+mysql::command { 'create MySQL database test':
+    command => 'CREATE DATABASE IF NOT EXISTS test'
 }
