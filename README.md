@@ -49,6 +49,9 @@ See [`metadata.json`](metadata.json). In particular, this module depends on
 
 * [puppetlabs/stdlib](https://forge.puppetlabs.com/puppetlabs/stdlib)
 
+The `pwgen` utility needs to be installed on the Puppetmaster, if the `mysql::server` class should auto-generate the root password.
+
+
 ## Overview and Usage
 
 ### Class `mysql`

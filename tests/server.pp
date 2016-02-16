@@ -5,6 +5,14 @@
 #
 # ------------------------------------------------------------------------------
 
-class { 'mysql::server':
-  ensure => 'present'
+node default {
+  # pwgen needs to be installed, but dependency does not seem to work
+  
+  package {'pwgen':
+    ensure => 'present',
+  } ->
+
+  class { 'mysql::server':
+    ensure => 'present',
+  }
 }
