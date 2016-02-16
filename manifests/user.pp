@@ -67,8 +67,8 @@ define mysql::user (
     # user@host.
     $full_username = $name
 
-    $username   = inline_template("<%= name.split('@')[0] %>")
-    $userhost   = inline_template("<%= name.split('@')[1] %>")
+    $username   = inline_template("<%= @name.split('@')[0] %>")
+    $userhost   = inline_template("<%= @name.split('@')[1] %>")
     $real_host = $userhost ? {
         ''      => $host ? {
             ''      => 'localhost',

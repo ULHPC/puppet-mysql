@@ -74,15 +74,18 @@ class mysql::params {
     # Client/server packages
     $client_packagename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/ => 'mysql-client',
-        default => 'mysql'
+        'centos'                => 'mariadb',
+        default                 => 'mysql'
     }
     $server_packagename = $::operatingsystem ? {
-        default => 'mysql-server',
+        'centos' => 'mariadb-server',
+        default  => 'mysql-server',
     }
 
     # MySQL service
     $servicename = $::operatingsystem ? {
         /(?i-mx:ubuntu|debian)/ => 'mysql',
+        'centos'                => 'mariadb',
         default                 => 'mysqld'
     }
     # used for pattern in a service ressource

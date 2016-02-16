@@ -16,5 +16,11 @@
 #      sudo puppet apply -t /vagrant/tests/init.pp
 #
 node default {
-    include mysql
+  # pwgen needs to be installed, but dependency does not seem to work
+
+  package {'pwgen':
+    ensure => 'present',
+  } ->
+
+  class { 'mysql': }
 }
